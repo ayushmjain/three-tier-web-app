@@ -24,7 +24,7 @@ spec:
       name: "pre"
       image: "ubuntu"
       entrypoint: "bash"
-      args: ["./pre.sh", "$PROJECT_ID", "$BUILD_ID"]
+      args: ["./pre.sh"]
     post:
       name: "post"
       image: "gcr.io/cloud-builders/gsutil"
