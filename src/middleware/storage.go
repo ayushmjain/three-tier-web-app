@@ -23,8 +23,8 @@ type Storage struct {
 }
 
 // Init kicks off the database connector
-func (s *Storage) Init(user, password, host, name, redisHost, redisPort string, cache bool) error {
-	if err := s.sqlstorage.Init(user, password, host, name); err != nil {
+func (s *Storage) Init(user, password, host, name, conn, redisHost, redisPort string, cache bool) error {
+	if err := s.sqlstorage.Init(user, password, host, name, conn); err != nil {
 		return err
 	}
 
@@ -37,18 +37,17 @@ func (s *Storage) Init(user, password, host, name, redisHost, redisPort string, 
 	return nil
 }
 
-// List retrieves a list of todos from either cache if cached or database
 func (s Storage) List() (Todos, error) {
 	ts, err := s.cache.List()
 	if err != nil {
 		if err == ErrCacheMiss {
 			ts, err = s.sqlstorage.List()
 			if err != nil {
-				return ts, fmt.Errorf("error getting list of todos from database: %v", err)
+				return ts, fmt.Errorf("error getting todo: %v", err)
 			}
 		}
 		if err := s.cache.SaveList(ts); err != nil {
-			return ts, fmt.Errorf("error caching list of todos : %v", err)
+			return ts, fmt.Errorf("error caching todo : %v", err)
 		}
 	}
 
@@ -80,11 +79,11 @@ func (s Storage) Read(id string) (Todo, error) {
 		if err == ErrCacheMiss {
 			t, err = s.sqlstorage.Read(id)
 			if err != nil {
-				return t, fmt.Errorf("error getting single from database todo: %v", err)
+				return t, fmt.Errorf("error getting todo: %v", err)
 			}
 		}
 		if err := s.cache.Save(t); err != nil {
-			return t, fmt.Errorf("error caching single todo : %v", err)
+			return t, fmt.Errorf("error caching todo : %v", err)
 		}
 	}
 

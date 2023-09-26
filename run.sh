@@ -65,9 +65,9 @@
 #    -H "Content-Type: application/json" \
 #    "https://config.googleapis.com/v1/projects/solcat-ayushmjain-dw-50/locations/us-central1/deployments/${DEPLOYMENT_ID}/revisions/r-0"
 
-DEPLOYMENT_ID=three-tier-app-deployment
+DEPLOYMENT_ID=three-tier-app
 curl \
     -X DELETE \
     -H "Authorization: Bearer $(gcloud auth print-access-token)" \
     -H "Content-Type: application/json" \
-    "https://config.googleapis.com/v1/projects/solcat-ayushmjain-dw-50/locations/us-central1/deployments/${DEPLOYMENT_ID}?force=true"
+    "https://config.googleapis.com/v1/projects/solcat-ayushmjain-dw-49/locations/us-central1/deployments/${DEPLOYMENT_ID}?force=true"

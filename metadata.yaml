@@ -22,9 +22,9 @@ spec:
   orchestration:
     pre:
       name: "pre"
-      image: "ubuntu"
+      image: "google/cloud-sdk:latest"
       entrypoint: "bash"
-      args: ["./pre.sh"]
+      args: ["./pre.sh", "prod"]
     post:
       name: "post"
       image: "gcr.io/cloud-builders/gsutil"

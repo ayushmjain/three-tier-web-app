@@ -35,6 +35,15 @@ var ErrCacheMiss = fmt.Errorf("item is not in cache")
 // NewCache returns an initialized cache ready to go.
 func NewCache(redisHost, redisPort string, enabled bool) (*Cache, error) {
 	c := &Cache{}
+
+	if redisHost == "" {
+		return nil, fmt.Errorf("redis host is blank")
+	}
+
+	if redisPort == "" {
+		return nil, fmt.Errorf("redis port is blank")
+	}
+
 	pool := c.InitPool(redisHost, redisPort)
 	c.enabled = enabled
 	c.redisPool = pool
@@ -91,14 +100,14 @@ func (c *Cache) Save(todo Todo) error {
 
 	json, err := todo.JSON()
 	if err != nil {
-		return fmt.Errorf("cannot convert todo to json: %s", err)
+		return err
 	}
 
 	conn.Send("MULTI")
 	conn.Send("SET", strconv.Itoa(todo.ID), json)
 
 	if _, err := conn.Do("EXEC"); err != nil {
-		return fmt.Errorf("cannot perform exec operation on cache: %s", err)
+		return err
 	}
 	c.log("Successfully saved todo to cache")
 	return nil

@@ -15,51 +15,83 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"strconv"
 	"strings"
+	"syscall"
+	"time"
 
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
-var storage Storage
+var (
+	storage    Storage
+	signalChan chan (os.Signal) = make(chan os.Signal, 1)
+)
 
 func main() {
-	user := os.Getenv("todo_user")
-	pass := os.Getenv("todo_pass")
-	host := os.Getenv("todo_host")
-	name := os.Getenv("todo_name")
-	redisHost := os.Getenv("REDISHOST")
-	redisPort := os.Getenv("REDISPORT")
+	conn := os.Getenv("db_conn")
+	user := os.Getenv("db_user")
+	host := os.Getenv("db_host")
+	name := os.Getenv("db_name")
+	pass := os.Getenv("db_pass")
+	redisHost := os.Getenv("redis_host")
+	redisPort := os.Getenv("redis_port")
 	port := os.Getenv("PORT")
 
-	fmt.Printf("Port: %s\n", port)
-
-	if err := storage.Init(user, pass, host, name, redisHost, redisPort, true); err != nil {
-		panic(err)
+	if err := storage.Init(user, pass, host, name, conn, redisHost, redisPort, true); err != nil {
+		log.Fatalf("cannot initialize storage systems: %s", err)
 	}
 	defer storage.sqlstorage.Close()
 
+	signal.Notify(signalChan, syscall.SIGINT, syscall.SIGTERM)
+
+	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
+	originsOk := handlers.AllowedOrigins([]string{"*"})
+	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
+
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/healthz", healthHandler).Methods(http.MethodGet)
-	router.HandleFunc("/api/v1/healthz", healthHandler).Methods(http.MethodGet)
 	router.HandleFunc("/api/v1/todo", listHandler).Methods(http.MethodGet, http.MethodOptions)
 	router.HandleFunc("/api/v1/todo", createHandler).Methods(http.MethodPost)
 	router.HandleFunc("/api/v1/todo/{id}", readHandler).Methods(http.MethodGet)
 	router.HandleFunc("/api/v1/todo/{id}", deleteHandler).Methods(http.MethodDelete)
 	router.HandleFunc("/api/v1/todo/{id}", updateHandler).Methods(http.MethodPost, http.MethodPut)
 
-	headersOk := handlers.AllowedHeaders([]string{"X-Requested-With"})
-	originsOk := handlers.AllowedOrigins([]string{"*"})
-	methodsOk := handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS", "DELETE"})
+	srv := &http.Server{
+		Addr:    ":" + port,
+		Handler: httpLog(handlers.CORS(originsOk, headersOk, methodsOk)(router)),
+	}
 
-	log.Fatal(http.ListenAndServe(":"+port, handlers.CORS(originsOk, headersOk, methodsOk)(router)))
+	go func() {
+		log.Printf("listening on port %s", port)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal(err)
+		}
+	}()
+
+	sig := <-signalChan
+	log.Printf("%s signal caught", sig)
+
+	// Timeout if waiting for connections to return idle.
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	storage.sqlstorage.Close()
+
+	// Gracefully shutdown the server by waiting on existing requests (except websockets).
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Printf("server shutdown failed: %+v", err)
+	}
+	log.Print("server exited")
 }
 
 // CORSRouterDecorator applies CORS headers to a mux.Router
@@ -71,7 +103,7 @@ type CORSRouterDecorator struct {
 // For more info about CORS, visit https://www.w3.org/TR/cors/
 func (c *CORSRouterDecorator) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	if origin := req.Header.Get("Origin"); origin != "" {
-		rw.Header().Set("Access-Control-Allow-Origin", origin)
+		rw.Header().Set("Access-Control-Allow-Origin", "*")
 		rw.Header().Set("Access-Control-Allow-Methods", "POST, GET, OPTIONS, PUT, DELETE")
 		rw.Header().Set("Access-Control-Allow-Headers", "Accept, Accept-Language, Content-Type, YourOwnHeader")
 	}
@@ -81,6 +113,15 @@ func (c *CORSRouterDecorator) ServeHTTP(rw http.ResponseWriter, req *http.Reques
 	}
 
 	c.R.ServeHTTP(rw, req)
+}
+
+func httpLog(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		s := "%s %s %s"
+		logS := fmt.Sprintf(s, r.RemoteAddr, r.Method, r.RequestURI)
+		weblog(logS)
+		h.ServeHTTP(w, r) // call original
+	})
 }
 
 func healthHandler(w http.ResponseWriter, r *http.Request) {

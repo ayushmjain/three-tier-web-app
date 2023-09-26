@@ -14,9 +14,13 @@
 
 steps:
    - name: 'gcr.io/cloud-builders/docker'
-     args: [ 'build', '-t', '$_REGION-docker.pkg.dev/$PROJECT_ID/$_BASENAME-app/api', '.' ]
+     args: [ 'build', 
+            '-t', 
+            'gcr.io/$PROJECT_ID/$_BASENAME-api-postgres:$_IMAGE_TAG',
+            '--cache-from', 'gcr.io/$PROJECT_ID/$_BASENAME-api-postgres:latest',
+            '.' ]
    - name: 'gcr.io/cloud-builders/docker'
-     args: ['push', '$_REGION-docker.pkg.dev/$PROJECT_ID/$_BASENAME-app/api']   
+     args: ['push', 'gcr.io/$PROJECT_ID/$_BASENAME-api-postgres:$_IMAGE_TAG']
 substitutions:
-  _REGION: us-central1
   _BASENAME: todo
+  _IMAGE_TAG: latest
