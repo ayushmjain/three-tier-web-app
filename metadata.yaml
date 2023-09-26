@@ -37,35 +37,3 @@ spec:
       sourceType: git
       dir: terraform
     version: 0.1.5
-#    actuationTool:
-#      flavor: Terraform
-#      version: '>= 0.13'
-#    description:
-#      tagline: Sample
-#      detailed: |-
-#        Sample detailed
-#      architecture:
-#      - arch 1
-#      - arch 2
-#  interfaces:
-#    variables:
-#    - name: project_id
-#      description: Project ID to deploy bucket
-#      varType: string
-#      required: true
-#    - name: content
-#      description: Content to put in the bucket
-#      varType: string
-#      required: true
-#    outputs:
-#    - name: gcs
-#      description: Created bucket
-#    - name: object
-#      description: Created object
-#  requirements:
-#    roles:
-#    - level: Project
-#      roles:
-#      - roles/owner
-#    services:
-#    - storage.googleapis.com
