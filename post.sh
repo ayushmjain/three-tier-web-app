@@ -1,6 +1,8 @@
 #!/bin/bash
 set -o errexit -o nounset -o pipefail
 
+apt-get -y update; apt-get -y install curl
+
 source post.env
 
 STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" ${cloud_run_fe_service_endpoint})

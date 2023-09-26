@@ -27,7 +27,7 @@ spec:
       args: ["./pre.sh", "prod"]
     post:
       name: "post"
-      image: "alpine/curl"
+      image: "ubuntu"
       entrypoint: "bash"
       args: ["./post.sh"]
   info:
