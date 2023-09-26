@@ -27,7 +27,7 @@ spec:
       args: ["./pre.sh", "prod"]
     post:
       name: "post"
-      image: "gcr.io/cloud-builders/gsutil"
+      image: "alpine/curl"
       entrypoint: "bash"
       args: ["./post.sh"]
   info:
