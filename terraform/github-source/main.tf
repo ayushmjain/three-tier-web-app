@@ -1,11 +1,11 @@
 module "network" {
-  source               = "github.com/ayushmjain/composition-modules/tree/main/compute-network/v1"
+  source               = "git::https://github.com/ayushmjain/composition-modules.git//compute-network/v1"
   compute_network_name = var.network_compute_network_name
   project              = var.project
   region               = var.region
 }
 module "cloud-run-api" {
-  source                   = "github.com/ayushmjain/composition-modules/tree/main/cloud-run/v1"
+  source                   = "git::https://github.com/ayushmjain/composition-modules.git//cloud-run/v1"
   redis_host               = module.redis.redis_host
   redis_port               = module.redis.redis_port
   sql_database_connection  = module.sql-database.database_connection_name
@@ -22,7 +22,7 @@ module "cloud-run-api" {
   cloud_run_service_image  = var.cloud-run-api_cloud_run_service_image
 }
 module "sql-database" {
-  source             = "github.com/ayushmjain/composition-modules/tree/main/cloud-sql/v1"
+  source             = "git::https://github.com/ayushmjain/composition-modules.git//cloud-sql/v1"
   project            = var.project
   region             = var.region
   zone               = var.zone
@@ -32,7 +32,7 @@ module "sql-database" {
   database_user_name = module.cloud-run-api.service_account_full_name
 }
 module "redis" {
-  source       = "github.com/ayushmjain/composition-modules/tree/main/redis/v1"
+  source       = "git::https://github.com/ayushmjain/composition-modules.git//redis/v1"
   network_name = module.network.network_name
   project      = var.project
   region       = var.region
@@ -40,7 +40,7 @@ module "redis" {
   redis_name   = var.redis_redis_name
 }
 module "cloud-run-fe" {
-  source                   = "github.com/ayushmjain/composition-modules/tree/main/cloud-run/v1"
+  source                   = "git::https://github.com/ayushmjain/composition-modules.git//cloud-run/v1"
   region                   = var.region
   sql_database_host        = var.cloud-run-fe_sql_database_host
   sql_database_name        = var.cloud-run-fe_sql_database_name
