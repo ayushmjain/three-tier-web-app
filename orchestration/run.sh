@@ -3,7 +3,7 @@
 #    -H "Content-Type: application/json" \
 #    "https://config.googleapis.com/v1/projects/solcat-ayushmjain-dw-50/locations/us-central1/deployments"
 
-#DEPLOYMENT_ID=three-tier-app-deployment
+#DEPLOYMENT_ID=three-tier-app-1
 #curl \
 #    -X POST \
 #    -H "Authorization: Bearer $(gcloud auth print-access-token)" \
@@ -13,7 +13,8 @@
 #      "serviceAccount": "projects/solcat-ayushmjain-dw-50/serviceAccounts/im-test@solcat-ayushmjain-dw-50.iam.gserviceaccount.com",
 #      "terraformBlueprint": {
 #        "gitSource": {
-#         "repo": "https://github.com/ayushmjain/three-tier-web-app.git",
+#         "repo": "https://github.com/ayushmjain/three-tier-web-app",
+#         "directory": "terraform/github-source",
 #        },
 #        "inputValues": {
 #         "project": {
@@ -59,15 +60,15 @@
 #      },
 #    }'
 
-#DEPLOYMENT_ID=three-tier-app-deployment
-#curl \
-#    -H "Authorization: Bearer $(gcloud auth print-access-token)" \
-#    -H "Content-Type: application/json" \
-#    "https://config.googleapis.com/v1/projects/solcat-ayushmjain-dw-50/locations/us-central1/deployments/${DEPLOYMENT_ID}/revisions/r-0"
-
-DEPLOYMENT_ID=three-tier-app
+DEPLOYMENT_ID=three-tier-app-1
 curl \
-    -X DELETE \
     -H "Authorization: Bearer $(gcloud auth print-access-token)" \
     -H "Content-Type: application/json" \
-    "https://config.googleapis.com/v1/projects/solcat-ayushmjain-dw-49/locations/us-central1/deployments/${DEPLOYMENT_ID}?force=true"
+    "https://config.googleapis.com/v1/projects/solcat-ayushmjain-dw-50/locations/us-central1/deployments/${DEPLOYMENT_ID}/revisions/r-0"
+
+#DEPLOYMENT_ID=three-tier-app
+#curl \
+#    -X DELETE \
+#    -H "Authorization: Bearer $(gcloud auth print-access-token)" \
+#    -H "Content-Type: application/json" \
+#    "https://config.googleapis.com/v1/projects/solcat-ayushmjain-dw-49/locations/us-central1/deployments/${DEPLOYMENT_ID}?force=true"

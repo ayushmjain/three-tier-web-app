@@ -5,7 +5,8 @@ module "network" {
   region               = var.region
 }
 module "cloud-run-api" {
-  source                   = "git::https://github.com/ayushmjain/composition-modules.git//cloud-run/v1"
+  source                   = "ayushmjain/cloud-run/ayushmjain"
+  version = "1.0.0"
   redis_host               = module.redis.redis_host
   redis_port               = module.redis.redis_port
   sql_database_connection  = module.sql-database.database_connection_name
@@ -40,7 +41,8 @@ module "redis" {
   redis_name   = var.redis_redis_name
 }
 module "cloud-run-fe" {
-  source                   = "git::https://github.com/ayushmjain/composition-modules.git//cloud-run/v1"
+  source                   = "ayushmjain/cloud-run/ayushmjain"
+  version = "1.0.0"
   region                   = var.region
   sql_database_host        = var.cloud-run-fe_sql_database_host
   sql_database_name        = var.cloud-run-fe_sql_database_name
